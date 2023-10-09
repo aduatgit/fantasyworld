@@ -43,7 +43,7 @@ class Warrior(Class):
 
     def gainRage(self, amount):
         if self.curr_rage == self.max_rage:
-            return
+            return ""
         elif self.curr_rage + amount > self.max_rage:
             gained_rage = self.max_rage - self.curr_rage
             self.curr_rage = self.max_rage
@@ -56,7 +56,7 @@ class Warrior(Class):
         return self.slash_base
         
 class Archer(Class):
-    shoot_base = 100
+    shoot_base = 300
 
     def __init__(self) -> None:
         super().__init__("Agility", 1, "Arrows", 65, "Leather", "Archer")
