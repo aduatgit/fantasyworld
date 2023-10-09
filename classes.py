@@ -15,6 +15,9 @@ class Class(ABC):
             "Fireball": "casts fireball at"
         }
 
+    def __str__(self) -> str:
+        return self._class_name
+
     def getHealthMultiplier(self):
         return self._health_multiplier
 
@@ -56,7 +59,7 @@ class Warrior(Class):
         return self.slash_base
         
 class Archer(Class):
-    shoot_base = 300
+    shoot_base = 100
 
     def __init__(self) -> None:
         super().__init__("Agility", 1, "Arrows", 65, "Leather", "Archer")

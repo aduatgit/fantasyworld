@@ -3,10 +3,10 @@ import time
 
 def main():
     char1 = Player("John", 3, True, Archer())
-    print(f"Successfully created character {char1.name}!")
+    print(f"Successfully created character {char1}!")
     time.sleep(1)
     char2 = Enemy("Oleg", 30, False, Warrior())
-    print(f"Successfully created character {char2.name}!")
+    print(f"Successfully created character {char2}!")
     time.sleep(1)
     char1.attack("Shoot", char2)
 

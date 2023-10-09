@@ -1,50 +1,60 @@
 from classes import *
-from classes import Class
 from abc import ABC
 import time
 import random
 
 class Character(ABC):
-    def __init__(self, name: str, age: int, gender: bool, _class: Class, race="Human") -> None:
-        self.name = name
-        self.age = age
-        self.gender = gender
-        self._class = _class
-        self.race = race
-        self.max_health = 250
-        self.curr_health = self.max_health
-        self.armor = 0
-        self.current_xp = 0
-        self.level = 1
-        self.crit_chance = 0.1
-        self.crit_dmg = 2
+    def __init__(self, name: str, age: int, gender: str, _class: Class, race="Human") -> None:
+        self.name: str = name
+        self.age: int = age
+        self.gender: str = gender
+        self._class: Class = _class
+        self.race: str = race
+        self.max_health: int = 250
+        self.curr_health: int = self.max_health
+        self.armor: int = 0
+        self.current_xp: int = 0
+        self.level: int = 1
+        self.crit_chance: float = 0.9
+        self.crit_dmg: int = 2
 
     #Takes an ability string and an target Character as input
     #Prints the attack action to the console and calls the takeDamage() method of the target
     def attack(self, ability, target):
         if ability in self._class.abilities:
-            print(f"{self.name} {self._class.ability_verb[ability]} {target.name}!")
+            crit_dmg, crit = self._calculateCrit(self._class.abilities[ability])
+            print(f"{self} {self._class.ability_verb[ability]} {target}!")
+            if crit:
+                time.sleep(1)
+                print(f"{ability} critically strikes!")
             time.sleep(1)
-            target._takeDamage(self._class.abilities[ability], self)
+            target._takeDamage(crit_dmg, self)
 
-
+    def __str__(self) -> str:
+        return f"{self.name} the {self._class}"
+    
     #Takes an int input of the damage a character is taking
     #If the character is of the warrior class, rage is generated
     #This method should only be invoked by other methods, such as attack()
     def _takeDamage(self, dmg, other):
         post_mit_dmg = dmg - self.armor
         self.curr_health -= post_mit_dmg
-        print(f"{self.name} took {post_mit_dmg} damage!")
+        print(f"{self} took {post_mit_dmg} damage!")
         time.sleep(1)
         if self.curr_health <= 0:
             self._deathAction(other)
         else:
-            print(f"{self.name} has {self.curr_health} health left!")
+            print(f"{self} has {self.curr_health} health left!")
             time.sleep(1)
             if self._class.getClassName() == "Warrior" and self._class.curr_rage < self._class.max_rage:
-                print(f"{self.name} {self._class.gainRage(post_mit_dmg)}")
+                print(f"{self} {self._class.gainRage(post_mit_dmg)}")
                 time.sleep(1)
     
+    def _calculateCrit(self, dmg):
+        if random.randrange(0,99) < self.crit_chance*100:
+            return dmg*self.crit_dmg, True
+        return dmg, False
+
     def _deathAction(self, other):
         pass
 
@@ -61,17 +71,18 @@ class Enemy(Character):
 
     def _deathAction(self, other):
         death_messages = [
-        "{self.name} has been vanquished by the forces of {target.name}.",
-        "Alas, {self.name} has fallen in battle to {target.name}. Better luck next time.",
-        "{target.name} has claimed the soul of {self.name}. Game over.",
-        "{self.name} fought bravely against {target.name}, but it was not enough.",
-        "{self.name}'s journey ends here at the hands of {target.name}. May {self.name} find peace in the afterlife.",
-        "{self.name} was bested by the monsters, led by {target.name}. Try again?",
-        "{self.name}'s adventure comes to a tragic end due to {target.name}.",
-        "{self.name} has succumbed to the wounds inflicted by {target.name}. Rest in peace.",
-        "The battle was fierce, but {self.name} was overpowered by {target.name}.",
-        "{self.name} was a worthy opponent, but fate was not on {self.name}'s side against {target.name}."
+        "{self} has been vanquished by the forces of {target}.",
+        "Alas, {self} has fallen in battle to {target}. Better luck next time.",
+        "{target} has claimed the soul of {self}. Game over.",
+        "{self} fought bravely against {target}, but it was not enough.",
+        "{self}'s journey ends here at the hands of {target}. May {self} find peace in the afterlife.",
+        "{self} was bested by the monsters, led by {target}. Try again?",
+        "{self}'s adventure comes to a tragic end due to {target}.",
+        "{self} has succumbed to the wounds inflicted by {target}. Rest in peace.",
+        "The battle was fierce, but {self} was overpowered by {target}.",
+        "{self} was a worthy opponent, but fate was not on {self}'s side against {target}."
         ]
+
         message = death_messages[random.randint(0,9)].format(self=self, target=other)
         print(f"{self.name} has 0 hp left!")
         time.sleep(1)
