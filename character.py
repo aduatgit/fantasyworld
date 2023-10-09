@@ -14,13 +14,22 @@ class Character(ABC):
         self.curr_health: int = self.max_health
         self.armor: int = 0
         self.current_xp: int = 0
+        self.needed_xp: int = 100
         self.level: int = 1
-        self.crit_chance: float = 0.9
+        self.crit_chance: float = 0.1
         self.crit_dmg: int = 2
+        self.main_stat: int = 100
+        self.dead: bool = False
 
     #Takes an ability string and an target Character as input
     #Prints the attack action to the console and calls the takeDamage() method of the target
     def attack(self, ability, target):
+        if target == None:
+            raise Exception("You need to select a target!")
+        if target.dead == True:
+            print(f"{target} is already dead! You should NOT attack dead people...")
+            time.sleep(1)
+            return
         if ability in self._class.abilities:
             crit_dmg, crit = self._calculateCrit(self._class.abilities[ability])
             print(f"{self} {self._class.ability_verb[ability]} {target}!")
@@ -42,6 +51,7 @@ class Character(ABC):
         print(f"{self} took {post_mit_dmg} damage!")
         time.sleep(1)
         if self.curr_health <= 0:
+            other._onKill(self)
             self._deathAction(other)
         else:
             print(f"{self} has {self.curr_health} health left!")
@@ -55,6 +65,9 @@ class Character(ABC):
             return dmg*self.crit_dmg, True
         return dmg, False
 
+    def _onKill(self, other):
+        pass
+
     def _deathAction(self, other):
         pass
 
@@ -62,9 +75,34 @@ class Character(ABC):
 class Player(Character):
     def __init__(self, name: str, age: int, gender: bool, _class: Class, race="Human") -> None:
         super().__init__(name, age, gender, _class, race)
+    
+    def _onKill(self, other):
+        self._gainXP(other._getXPDrop())
+
+    def _gainXP(self, amount):
+        self.current_xp += amount
+        print(f"{self} gained {amount} xp!")
+        time.sleep(1)
+        while self.current_xp // self.needed_xp >= 1:
+            self._LevelUp()
+    
+    def _LevelUp(self):
+        self.current_xp -= self.needed_xp
+        self.needed_xp **= self.level
+        self.level += 1
+        print(f"{self} gained a level!")
+        time.sleep(1)
+        print(f"You are now level {self.level}.")
+
+        self.max_health = 250*self._class.getHealthMultiplier()*self.level
+        self.curr_health = self.max_health
+
+        self.main_stat = 100*self.level
+
+    
 
 class Enemy(Character):
-    def __init__(self, name: str, age: int, gender: bool, _class: Class, race="Orc", level=1, xp_drop=25) -> None:
+    def __init__(self, name: str, age: int, gender: bool, _class: Class, race="Orc", level=1, xp_drop=500) -> None:
         super().__init__(name, age, gender, _class, race)
         self.level = level
         self.xp_drop = xp_drop
@@ -87,4 +125,9 @@ class Enemy(Character):
         print(f"{self.name} has 0 hp left!")
         time.sleep(1)
         print(message)
+        self.dead = True
         time.sleep(1)
+        del self
+
+    def _getXPDrop(self):
+        return self.xp_drop
